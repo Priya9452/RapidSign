@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>RapidSign</title>
+    <!-- Internal CSS styles -->
+    <style>
+        body {
+    margin: 0;
+    padding: 60px;
+    display: flex;
+    justify-content: left;
+    align-items: flex-start; /* align items to the top */
+    min-height: 100vh; /* set minimum height to full viewport height */
+  }
+
+  .logo-container {
+    position: relative;
+    margin-top: 0px; /* adjust margin as needed */
+    display: flex; /* Enable flexbox layout */
+  justify-content: center; /* Horizontally center the logo */
+  align-items: center; /* Vertically center the logo */
+
+  }
+
+  .logo {
+    display: block;
+    margin: 0 auto; /* center the image horizontally */
+  }
+        /* Styling for the main container */
+        .main {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Styling for the canvas */
+        .canvas {
+            border: 2px solid black;
+        }
+
+        /* Styling for the top and bottom sections */
+        .top,
+        .mid {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            margin: 20px 0 20px 0;
+        }
+
+        /* Styling for input fields, select, and button elements */
+        .block,
+        input,
+        select,
+        button {
+            width: 80%;
+        }
+
+        /* Styling for column layout */
+        .column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Styling for buttons in the bottom section */
+        .mid>button {
+            margin: 10px;
+        }
+
+        /* Styling for blocks in the top section */
+        .top>.block {
+            margin: 10px;
+        }
+
+        /* Styling for paragraphs within blocks */
+        .block>p {
+            margin: 10px auto;
+            width: 50%;
+        }
+    </style>
+    <!-- Favicon -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+</head>   
+
+<link rel="icon" href="favicon.ico" type="image/x-icon">
+<body>
+
+    
+
+    <!-- Main container -->
+    <div class="main">
+        <!-- RapidSign logo container -->
+    <div class="logo-container">
+        <img src="favicon.ico" alt="Logo" class="logo">
+      </div>
+        <!-- Top section containing input controls -->
+        <div class="top">
+            <div class="block">
+                <!-- Color picker for text -->
+                <p>Text color picker</p>
+                <input class="form-control" type="color" id="colorPicker">
+            </div>
+            <div class="block">
+                <!-- Color picker for canvas background -->
+                <p>Background</p>
+                <input class="form-control" type="color" id="canvasColor">
+            </div>
+            <div class="block">
+                <!-- Font size selector -->
+                <p>Font size</p>
+                <select class="custom-select" type="select" id="fontSizePicker">
+                    <option value="1">1px</option>
+                    <option value="2">2px</option>
+                    <option value="3">3px</option>
+                    <option value="5">5px</option>
+                    <option value="7">7px</option>
+                    <option value="10">10px</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- mid section containing action buttons -->
+        <div class="mid">
+            <!-- Button to clear the canvas -->
+            
+            <button type="button" class="btn btn-dark" id="clearButton">Clear</button>
+            <!-- Button to save the drawing -->
+            <button type="button" class="btn btn-dark" id="saveButton">Save & Download</button>
+            <!-- Button to retrieve saved signature -->
+            <button type="button" class="btn btn-dark" id="retrieveButton">Get Saved Signature</button>
+        </div>
+
+        <!-- Canvas for drawing -->
+        <canvas class="canvas" id="myCanvas" width="800" height="400"></canvas>
+
+        
+    </div>
+
+    <!-- JavaScript code -->
+    <script>
+        // Array to store drawing history
+        let history = [];
+
+        // Getting references to various elements
+        const colorPicker = document.getElementById('colorPicker');
+        const canvasColor = document.getElementById('canvasColor');
+        const canvas = document.getElementById('myCanvas');
+        const clearButton = document.getElementById('clearButton');
+        const saveButton = document.getElementById('saveButton');
+        const fontSizePicker = document.getElementById('fontSizePicker');
+        const ctx = canvas.getContext('2d');
+
+        // Event listener for text color picker
+        colorPicker.addEventListener('change', (event) => {
+            ctx.fillStyle = event.target.value;
+            ctx.strokeStyle = event.target.value;
+        });
+
+        // Event listener for canvas background color picker
+        canvasColor.addEventListener('change', (event) => {
+            ctx.fillStyle = event.target.value;
+            ctx.fillRect(0, 0, 800, 500);
+        });
+
+        // Event listener for mouse down on canvas
+        canvas.addEventListener('mousedown', (event) => {
+            isDrawing = true;
+            lastX = event.offsetX;
+            lastY = event.offsetY;
+        });
+
+        // Event listener for mouse move on canvas
+        canvas.addEventListener('mousemove', (event) => {
+            if (isDrawing) {
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(event.offsetX, event.offsetY);
+                ctx.stroke();
+
+                lastX = event.offsetX;
+                lastY = event.offsetY;
+            }
+        });
+
+        // Preventing the default context menu on canvas
+        canvas.addEventListener('contextmenu', (event) => {
+            event.preventDefault();
+        });
+
+        // Event listener for mouse up on canvas
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        // Event listener for font size selector
+        fontSizePicker.addEventListener('change', (event) => {
+            ctx.lineWidth = event.target.value;
+        });
+
+        // Event listener for clear button
+        clearButton.addEventListener('click', () => {
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        // Event listener for save button
+        saveButton.addEventListener('click', () => {
+            // Save canvas as image
+            localStorage.setItem('canvasContents', canvas.toDataURL());
+            let link = document.createElement('a');
+            link.download = 'my-canvas.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+
+        // Event listener for retrieve button
+        retrieveButton.addEventListener('click', () => {
+            let savedCanvas = localStorage.getItem('canvasContents');
+            if (savedCanvas) {
+                let img = new Image();
+                img.src = savedCanvas;
+                ctx.drawImage(img, 0, 0);
+            }
+        });
+    </script>
+</body>
+
+</html>
